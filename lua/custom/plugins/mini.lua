@@ -25,8 +25,8 @@ return {
     statusline.setup { use_icons = vim.g.have_nerd_font }
 
     -- Starter screen
-    local starter = require 'mini.starter'
-    starter.setup { use_icons = vim.g.have_nerd_font }
+    -- local starter = require 'mini.starter'
+    -- starter.setup { use_icons = vim.g.have_nerd_font }
 
     -- File exploder
     local mini_files = require 'mini.files'

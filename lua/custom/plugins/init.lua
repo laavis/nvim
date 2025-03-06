@@ -36,7 +36,7 @@ return {
       vim.keymap.set('n', '<leader>mt', ':Markview Toggle<CR>', { desc = 'Toggle Markview Preview' })
     end,
   },
-  {
+  { -- Terminal in nvim
     'akinsho/toggleterm.nvim',
     version = '*',
     config = function()
@@ -65,6 +65,28 @@ return {
       })
 
       vim.keymap.set('n', '<leader>tv', ':ToggleTerm direction=vertical<CR>', { desc = 'Vertical Split Terminal' })
+    end,
+  },
+  { -- Start Screen
+    'goolord/alpha-nvim',
+    -- dependencies = { 'echasnovski/mini.icons' },
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('alpha').setup(require('alpha.themes.theta').config)
+    end,
+    -- config = function()
+    --
+    --   local startify = require 'alpha.themes.startify'
+    --   -- available: devicons, mini, default is mini
+    --   -- if provider not loaded and enabled is true, it will try to use another provider
+    --   startify.file_icons.provider = 'devicons'
+    --   require('alpha').setup(startify.config)
+    -- end,
+  },
+  { -- Fancy Autocomplete
+    'supermaven-inc/supermaven-nvim',
+    config = function()
+      require('supermaven-nvim').setup {}
     end,
   },
 }
