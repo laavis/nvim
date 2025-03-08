@@ -19,6 +19,7 @@
 =====================================================================
 =====================================================================
 
+
 What is Kickstart?
 
   Kickstart.nvim is *not* a distribution.
@@ -487,6 +488,7 @@ require('lazy').setup({
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
     },
+
     config = function()
       -- Brief aside: **What is LSP?**
       --
@@ -530,6 +532,12 @@ require('lazy').setup({
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
 
+          local client = vim.lsp.get_client_by_id(event.data.client_id)
+          -- Add ESLint-specific mapping for fixing errors on demand.
+          if client.name == 'eslint' then
+            map('<leader>ef', '<cmd>EslintFixAll<CR>', 'ESLint Fix All')
+          end
+
           -- Jump to the definition of the word under your cursor.
           --  This is where a variable was first declared, or where a function is defined, etc.
           --  To jump back, press <C-t>.
@@ -566,6 +574,9 @@ require('lazy').setup({
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+
+          map('K', vim.lsp.buf.hover, 'Hover Documentation')
+          map('<leader>e', vim.diagnostic.open_float, 'Open Diagnostic')
 
           -- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
           ---@param client vim.lsp.Client
@@ -617,6 +628,26 @@ require('lazy').setup({
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
+          end
+          -- Add your ESLint auto-fix on save only if this client is ESLint.
+          if client.name == 'eslint' then
+            vim.api.nvim_create_autocmd('BufWritePre', {
+              buffer = event.buf,
+              callback = function()
+                local params = vim.lsp.util.make_range_params()
+                params.context = { only = { 'source.fixAll.eslint' } }
+                local result = vim.lsp.buf_request_sync(0, 'textDocument/codeAction', params, 1000)
+                for _, res in pairs(result or {}) do
+                  for _, r in pairs(res.result or {}) do
+                    if r.edit then
+                      vim.lsp.util.apply_workspace_edit(r.edit, vim.lsp.util._get_offset_encoding())
+                    else
+                      vim.lsp.buf.execute_command(r.command)
+                    end
+                  end
+                end
+              end,
+            })
           end
         end,
       })
@@ -912,34 +943,21 @@ require('lazy').setup({
     end,
   },
 
-  {
-    'rebelot/kanagawa.nvim',
-    priority = 1000,
-    config = function()
-      require('kanagawa').setup {
-        compile = true, -- enable highlight compilation
-        undercurl = true, -- enable undercurls
-        commentStyle = { italic = true },
-        keywordStyle = { italic = true },
-        statementStyle = { bold = true },
-        transparent = false, -- use a background color
-        terminalColors = true, -- define terminal colors
-        theme = 'wave', -- choose theme variant
-      }
-      vim.cmd.colorscheme 'kanagawa-dragon'
-    end,
-  },
-
-  -- A useless plugin that might help you cope with stubbornly broken tests or overall lack of sense in life
-  {
-    'Eandrju/cellular-automaton.nvim',
-    config = function()
-      vim.keymap.set('n', '<leader>fml', '<cmd>CellularAutomaton make_it_rain<CR>')
-    end,
-  },
-
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  {
+    'folke/todo-comments.nvim',
+    event = 'VimEnter',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = {
+      signs = true,
+      search = {
+        pattern = [[\b(KEYWORDS)(\([^\)]*\))?:]],
+      },
+      highlight = {
+        pattern = [[.*<((KEYWORDS)%(\(.{-1,}\))?):]],
+      },
+    },
+  },
 
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',

@@ -29,10 +29,10 @@ return {
     -- starter.setup { use_icons = vim.g.have_nerd_font }
 
     -- File exploder
-    local mini_files = require 'mini.files'
-    mini_files.setup()
-
-    vim.keymap.set('n', '-', mini_files.open, { desc = 'Open parent directory' })
+    -- local mini_files = require 'mini.files'
+    -- mini_files.setup()
+    --
+    -- vim.keymap.set('n', '-', mini_files.open, { desc = 'Open parent directory' })
 
     -- You can configure sections in the statusline by overriding their
     -- default behavior. For example, here we set the section for

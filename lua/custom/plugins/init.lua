@@ -74,19 +74,18 @@ return {
     config = function()
       require('alpha').setup(require('alpha.themes.theta').config)
     end,
-    -- config = function()
-    --
-    --   local startify = require 'alpha.themes.startify'
-    --   -- available: devicons, mini, default is mini
-    --   -- if provider not loaded and enabled is true, it will try to use another provider
-    --   startify.file_icons.provider = 'devicons'
-    --   require('alpha').setup(startify.config)
-    -- end,
   },
   { -- Fancy Autocomplete
     'supermaven-inc/supermaven-nvim',
     config = function()
       require('supermaven-nvim').setup {}
+    end,
+  },
+
+  { -- A useless plugin that might help you cope with stubbornly broken tests or overall lack of sense in life
+    'Eandrju/cellular-automaton.nvim',
+    config = function()
+      vim.keymap.set('n', '<leader>fml', '<cmd>CellularAutomaton make_it_rain<CR>')
     end,
   },
 }
