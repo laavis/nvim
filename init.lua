@@ -816,6 +816,7 @@ require('lazy').setup({
         jsonc = { 'prettierd', 'prettier', stop_after_first = true },
         css = { 'prettierd', 'prettier', stop_after_first = true },
         scss = { 'prettierd', 'prettier', stop_after_first = true },
+        html = { 'prettierd', 'prettier', stop_after_first = true },
       },
     },
   },
@@ -1061,6 +1062,7 @@ require('lazy').setup({
     },
   },
 })
+require('lspconfig').glsl_analyzer.setup {}
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

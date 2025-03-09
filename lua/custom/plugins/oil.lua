@@ -8,6 +8,7 @@ return {
           ['<C-h>'] = false,
           ['<M-h>'] = 'actions.select_split',
           ['q'] = 'actions.close', -- Add this line to close oil with "q"
+          ['Y'] = { 'actions.yank_entry', opts = { modify = ':.' } }, -- Copy relative path
         },
         view_options = { show_hidden = true },
 
