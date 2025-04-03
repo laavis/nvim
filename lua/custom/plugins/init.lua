@@ -88,4 +88,13 @@ return {
       vim.keymap.set('n', '<leader>fml', '<cmd>CellularAutomaton make_it_rain<CR>')
     end,
   },
+  -- Auto rename tags
+  {
+    'AndrewRadev/tagalong.vim',
+    event = 'InsertEnter',
+    config = function()
+      vim.g.tagalong_verbose = 1
+      vim.g.tagalong_additional_filetypes = { 'tsx' }
+    end,
+  },
 }

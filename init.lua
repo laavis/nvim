@@ -656,7 +656,7 @@ require('lazy').setup({
       -- See :help vim.diagnostic.Opts
       vim.diagnostic.config {
         severity_sort = true,
-        float = { border = 'rounded', source = 'if_many' },
+        float = { border = 'rounded', source = 'if_many', focusable = true },
         underline = { severity = vim.diagnostic.severity.ERROR },
         signs = vim.g.have_nerd_font and {
           text = {
@@ -1063,6 +1063,45 @@ require('lazy').setup({
   },
 })
 require('lspconfig').glsl_analyzer.setup {}
+vim.keymap.set('n', '<leader>yd', function()
+  local diagnostics = vim.diagnostic.get()
+  if diagnostics and diagnostics[1] then
+    vim.fn.setreg('+', diagnostics[1].message)
+    vim.notify('Diagnostic copied to clipboard', vim.log.levels.INFO)
+  end
+end, { desc = 'Yank diagnostic message' })
+
+vim.keymap.set('n', '<leader>yh', function()
+  -- Trigger the hover popup
+  vim.lsp.buf.hover()
+
+  -- Give it time to render before extracting the content
+  vim.defer_fn(function()
+    -- Search for the hover float window
+    local hover_buf = nil
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+      local config = vim.api.nvim_win_get_config(win)
+      if config.relative ~= '' and config.focusable == false then
+        local buf = vim.api.nvim_win_get_buf(win)
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+        if #lines > 0 then
+          hover_buf = buf
+          break
+        end
+      end
+    end
+
+    -- Yank contents if found
+    if hover_buf then
+      local lines = vim.api.nvim_buf_get_lines(hover_buf, 0, -1, false)
+      local text = table.concat(lines, '\n')
+      vim.fn.setreg('+', text)
+      vim.notify('Hover contents yanked to clipboard', vim.log.levels.INFO)
+    else
+      vim.notify('No hover content found', vim.log.levels.WARN)
+    end
+  end, 100) -- delay in ms
+end, { desc = 'Yank LSP Hover to Clipboard' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
