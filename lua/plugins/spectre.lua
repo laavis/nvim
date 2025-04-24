@@ -1,3 +1,4 @@
+-- Find and replace text
 return {
   'nvim-pack/nvim-spectre',
   config = function()
