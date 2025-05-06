@@ -31,7 +31,6 @@ require('lazy').setup({
   { import = 'plugins.telescope' },
   { import = 'plugins.autoformat' },
   { import = 'plugins.autocomplete' },
-  { import = 'plugins.autopairs' },
   { import = 'plugins.mini' },
   { import = 'plugins.oil' },
   { import = 'plugins.spectre' },
