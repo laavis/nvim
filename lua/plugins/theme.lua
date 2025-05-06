@@ -14,6 +14,7 @@ return {
         theme = 'wave', -- choose theme variant
       }
       vim.cmd.colorscheme 'kanagawa-dragon'
+      -- vim.cmd.colorscheme 'kanagawa-lotus'
     end,
   },
 }

@@ -25,42 +25,58 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Copy all diagnostics at cursor line
 vim.keymap.set('n', '<leader>yd', function()
-  local diagnostics = vim.diagnostic.get()
-  if diagnostics and diagnostics[1] then
-    vim.fn.setreg('+', diagnostics[1].message)
-    vim.notify('Diagnostic copied to clipboard', vim.log.levels.INFO)
+  -- current buffer & line
+  local bufnr = vim.api.nvim_get_current_buf()
+  local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+
+  -- fetch every diagnostic at this line
+  local diags = vim.diagnostic.get(bufnr, { lnum = row })
+  if vim.tbl_isempty(diags) then
+    vim.notify('No diagnostics at line ' .. (row + 1), vim.log.levels.WARN)
+    return
   end
-end, { desc = 'Yank diagnostic message' })
 
+  -- collect each message (with its source tag, if you like)
+  local msgs = {}
+  for _, d in ipairs(diags) do
+    -- you can include d.source or d.code here too if you want:
+    table.insert(msgs, d.message)
+  end
+
+  -- join with real newlines
+  local full = table.concat(msgs, '\n')
+
+  -- yank to '+' (system clip), char-wise so newlines stick
+  vim.fn.setreg('+', full, 'c')
+  vim.notify('Copied ' .. #msgs .. ' diagnostic(s)', vim.log.levels.INFO)
+end, { desc = 'Yank *all* diagnostics at cursor line' })
+
+-- Copy hover documentation at cursor line
 vim.keymap.set('n', '<leader>yh', function()
-  -- Trigger the hover popup
-  vim.lsp.buf.hover()
-
-  -- Give it time to render before extracting the content
-  vim.defer_fn(function()
-    -- Search for the hover float window
-    local hover_buf = nil
-    for _, win in ipairs(vim.api.nvim_list_wins()) do
-      local config = vim.api.nvim_win_get_config(win)
-      if config.relative ~= '' and config.focusable == false then
-        local buf = vim.api.nvim_win_get_buf(win)
-        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-        if #lines > 0 then
-          hover_buf = buf
-          break
-        end
-      end
+  local params = vim.lsp.util.make_position_params()
+  vim.lsp.buf_request(0, 'textDocument/hover', params, function(err, result, ctx, _)
+    if err then
+      vim.notify('Error fetching hover: ' .. err.message, vim.log.levels.ERROR)
+      return
+    end
+    if not (result and result.contents) then
+      vim.notify('No hover information available', vim.log.levels.WARN)
+      return
     end
 
-    -- Yank contents if found
-    if hover_buf then
-      local lines = vim.api.nvim_buf_get_lines(hover_buf, 0, -1, false)
-      local text = table.concat(lines, '\n')
-      vim.fn.setreg('+', text)
-      vim.notify('Hover contents yanked to clipboard', vim.log.levels.INFO)
-    else
-      vim.notify('No hover content found', vim.log.levels.WARN)
-    end
-  end, 100) -- delay in ms
-end, { desc = 'Yank LSP Hover to Clipboard' })
+    -- turn whatever the server sent into markdown lines
+    local markdown_lines = vim.lsp.util.convert_input_to_markdown_lines(result.contents)
+
+    -- remove any truly empty or whitespace-only lines
+    local cleaned = vim.tbl_filter(function(line)
+      return line:match '%S'
+    end, markdown_lines)
+
+    -- reassemble, yank to clipboard
+    local text = table.concat(cleaned, '\n')
+    vim.fn.setreg('+', text, 'c')
+    vim.notify('Hover docs copied to clipboard', vim.log.levels.INFO)
+  end)
+end, { desc = 'Yank LSP hover documentation' })
